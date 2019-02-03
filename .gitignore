@@ -39,4 +39,23 @@ Thumbs.db
 # Folders to ignore
 States/
 .ipynb_checkpoints/
-Emulation/
+Emulation/dll/
+Emulation/ExternalTools/
+Emulation/Firmware/
+Emulation/Gameboy/
+Emulation/gamedb/
+Emulation/GBA/
+Emulation/Lua/
+Emulation/Movies/
+Emulation/NES/
+Emulation/ROMS/
+Emulation/shaders/
+Emulation/socket/
+Emulation/Tools/
+Emulation/config.ini
+Emulation/defctrl.json
+Emulation/DiscoHawk.exe.config
+Emulation/EmuHawk.exe.config
+Emulation/ltn12.lua
+Emulation/mime.lua
+Emulation/socket.lua
