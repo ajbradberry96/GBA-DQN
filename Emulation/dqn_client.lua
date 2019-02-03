@@ -15,9 +15,9 @@ end
 client.setscreenshotosd(false)
 tcp:send("Connected to GBA.")
 
-tcp:settimeout(.01)
+tcp:settimeout(.005)
 
-message, error, receive_buffer = tcp:receive("*a", receive_buffer)
+message, error, receive_buffer = tcp:receive("*l", receive_buffer)
 print(receive_buffer)
 
 --Let the server know how many frames in a stack
@@ -42,30 +42,11 @@ function send_state()
   --iii. Game over?
   game_over = memory.read_u8(0x5C0B)
 
-  tcp:send("State captured.")
+  tcp:send(tostring(score).. "," .. tostring(game_over))
   receive_buffer = ""
-  message, error, receive_buffer = tcp:receive("*a", receive_buffer)
-  if tostring(receive_buffer) ~= "Frames received." then
+  message, error, receive_buffer = tcp:receive("*l", receive_buffer)
+  if tostring(receive_buffer) ~= "State received." then
     print("Error receiving frames") 
-    print(receive_buffer)
-    return
-  end
-
-  tcp:send(score)
-  receive_buffer = ""
-  message, error, receive_buffer = tcp:receive("*a", receive_buffer)
-  if tostring(receive_buffer) ~= "Score received." then
-    print("Error receiving score") 
-    print(receive_buffer)
-    return
-  end
-
-
-  tcp:send(game_over)
-  receive_buffer = ""
-  message, error, receive_buffer = tcp:receive("*a", receive_buffer)
-  if tostring(receive_buffer) ~= "Game over received." then
-    print("Error receiving game over") 
     print(receive_buffer)
     return
   end
@@ -77,8 +58,8 @@ function receive_action()
   tcp:send("ready")
 
   receive_buffer = ""
-  message, error, receive_buffer = tcp:receive("*a", receive_buffer)
-  
+  message, error, receive_buffer = tcp:receive("*l", receive_buffer)
+  joypad.setfrommnemonicstr(receive_buffer)
   tcp:send("action received")
 end
 
@@ -89,8 +70,9 @@ function close()
 end
 
 while true do
+  --print(joypad.get())
   receive_buffer = ""
-  message, error, receive_buffer = tcp:receive("*a", receive_buffer)
+  message, error, receive_buffer = tcp:receive("*l", receive_buffer)
   command = tostring(receive_buffer)
   if command == "restart" then restart() end
   if command == "send state" then send_state() end

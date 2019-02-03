@@ -12,4 +12,6 @@ for _ in range(100):
     frames, score, game_over = server.get_state()
     for i in range(4):
         frames.get()
+    
+    server.send_action("1000")
 server.close()

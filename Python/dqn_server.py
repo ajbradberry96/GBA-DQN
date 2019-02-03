@@ -9,7 +9,12 @@ import socket
 import matplotlib.image as mpimg
 import queue
 import time
-
+ # A LEFT RIGHT NOTHING
+ 
+action_dict = {"1000" : '|    0,    0,    0,  100,.......A...|', 
+               "0100" : '|    0,    0,    0,  100,..L........|',
+               "0010" : '|    0,    0,    0,  100,...R.......|', 
+               "0001" : '|    0,    0,    0,  100,...........|'}
 class Server():
     def __init__(self):
         self.s = socket.socket()         # Create a socket object
@@ -34,40 +39,30 @@ class Server():
     def get_state(self):
         frame_stack = queue.Queue(maxsize=self.num_frames)
         self.c.send(bytes("send state",'utf-8'))
-        self.c.recv(self.RECV_BUFFER)
-        self.c.send(bytes("Frames received.",'utf-8'))
+        data = self.c.recv(self.RECV_BUFFER).decode("utf-8")
+        self.c.send(bytes("State received.",'utf-8'))
 
         
         for i in range(self.num_frames):
             frame_stack.put(mpimg.imread('../States/frame' + str(i + 1)+ '.png'))
-        
-        # Next, recv score
-        #score = int(c.recv(RECV_BUFFER).decode('utf-8'))
-        #c.send(bytes("Score Received.\n", 'utf-8'))
-                
-        # Next, recv game_over
-        #game_over = bool(c.recv(RECV_BUFFER).decode('utf-8'))
-        #c.send(bytes("Score Received.\n", 'utf-8'))
-        
-        #(self.frame_stack, score, game_over)
-        score = int(self.c.recv(self.RECV_BUFFER).decode('utf-8'))
-        self.c.send(bytes("Score received.", "utf-8"))
-        
-        game_over_num = int(self.c.recv(self.RECV_BUFFER).decode('utf-8'))
+
+        score = int(data.split(',')[0])
+        game_over_num = int(data.split(',')[1])
         if game_over_num == 1:
             game_over = False
         else:
             game_over = True
-            
-        self.c.send(bytes("Game over received.", "utf-8"))
+
         self.c.recv(self.RECV_BUFFER)
         return (frame_stack, score, game_over)
     
     def send_action(self, action):
+        # Action comes as a one-hot list
         self.c.send(bytes("receive action",'utf-8'))
         self.c.recv(self.RECV_BUFFER)
         
-        self.c.send(bytes("Put action here...",'utf-8'))
+        
+        self.c.send(bytes(action_dict[action],'utf-8'))
         self.c.recv(self.RECV_BUFFER)
         
     def restart(self):
