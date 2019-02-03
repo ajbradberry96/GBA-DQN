@@ -1,5 +1,7 @@
 # GBA-DQN
 
+A standard DQN being designed to be able to play any GBA game, currently setting up to play the original Mario Bros. from the cartridge Super Mario Bros Advance 4.
+
 # Setup
 
 Download this Repo
