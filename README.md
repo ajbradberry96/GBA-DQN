@@ -8,7 +8,7 @@ Download this Repo
 
 Install Bizhawk from here: http://tasvideos.org/Bizhawk.html
 
-Place all of the resulting files in the Emulation folder.
+Place all of the resulting files in a folder called Emulation.
 
 Download LuaSocket from here: http://w3.impa.br/~diego/software/luasocket/installation.html
 
