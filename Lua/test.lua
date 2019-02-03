@@ -1,4 +1,4 @@
-local tcp = require("socket").tcp()
+local tcp = require("../Emulation/socket").tcp()
 local receive_buffer = ""
 local message = ""
 local success, error = tcp:connect('localhost', 36296)
