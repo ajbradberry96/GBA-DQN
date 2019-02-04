@@ -2,6 +2,8 @@
 """
 Created on Sun Feb  3 12:02:42 2019
 
+Main logic for training DQN model.
+
 @author: Moosnum2
 """
 
@@ -11,14 +13,21 @@ import agent as a
 import numpy as np
 import tensorflow as tf
 import time as t
-start = t.time()
 
+# So we can time how long training takes...
+start = t.time()
+# Number of actions available to our agent
 N_ACTIONS = 4
+# Number of frames per stack
 N_FRAMES = 4
+# Number of episodes to train
 TRAIN_LEN = 500
+# Maximum number of steps in any given episode
 MAX_SESS = 30000
+# Training batch size
 BATCH_SIZE = 64
 GAMMA = .95
+
 agent = a.Agent(N_ACTIONS)
 server = dqn_server.Server(N_FRAMES)
 prep = preprocessor.Preprocessor(N_FRAMES)
@@ -30,25 +39,34 @@ new_game_over = None
 action = None
 reward = None
 new_stack = None
+new_game = True
 
 for i in range(BATCH_SIZE + 1):
     # If it's the first step
-    if i == 0:
-        # First we need a state
+    if new_game:
+        # Start a new episode
+        server.restart()
+        
+        # First we need a state (again)
         frames, score, game_over = server.get_state()
         stack = prep.stack_frames(frames)
+        
+        new_game = False
     else:
+        # Otherwise, we just completed a step, so add a memory
         agent.add_memory((stack, action, reward, new_stack, new_game_over))
+        # Set old state
         frames, score, game_over = new_frames, new_score, new_game_over
         
-    # Random action
+    # Random action, since we're just filling memory
     action = np.random.randint(0, N_ACTIONS)
     
-    # Get the rewards
+    # Get the rewards and next state
     server.send_action(action)
     new_frames, new_score, new_game_over = server.get_state()
     new_stack = prep.stack_frames(new_frames)
     
+    # Disincentivize game overs...
     if new_game_over:
         end_score = -10
     else:
@@ -63,13 +81,9 @@ for i in range(BATCH_SIZE + 1):
         # Add experience to memory
         agent.add_memory((stack, action, reward, next_state, new_game_over))
         
-        # Start a new episode
-        server.restart()
-        
-        # First we need a state
-        frames, score, game_over = server.get_state()
-        stack = prep.stack_frames(frames)
+        new_game = True
 
+# Initialize loss to 1 (ARBITRARY, CHANGE LATER?)
 loss = 1.0
 # Train it
 with tf.Session() as sess:
@@ -184,7 +198,9 @@ with tf.Session() as sess:
         if episode % 5 == 0:
             agent.save(sess, "./models/model.ckpt")
             print("Model Saved")
-            
+
+# Close the connection            
 server.close()
 
+# How long did that take? (Really friggen long, amirite?)
 print("Took", t.time() - start, "seconds.")

@@ -2,6 +2,9 @@
 """
 Created on Sun Feb  3 21:22:12 2019
 
+Module containing Agent() class, which holds memories and generates 
+predictions from a model (currently, a DQN) based upon game states.
+
 @author: Moosnum2
 """
 import dqn
@@ -10,11 +13,12 @@ import memory
 class Agent():
     def __init__(self, N_ACTIONS):                
         ### MEMORY HYPERPARAMETERS
-        self.pretrain_length = 64
-        self.memory_size = 1000000          # Number of experiences the Memory can keep
+        # Number of experiences the Memory can keep
+        self.memory_size = 1000000         
         self.model = dqn.DQN()
         self.memory = memory.Memory(self.memory_size)
         
+        # Set up tensorboard
         self.model.set_up_board()
     
     def add_memory(self, experience):

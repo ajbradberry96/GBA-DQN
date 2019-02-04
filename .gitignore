@@ -51,6 +51,8 @@ Emulation/NES/
 Emulation/ROMS/
 Emulation/shaders/
 Emulation/socket/
+
+*.pyc
 Emulation/Tools/
 Emulation/config.ini
 Emulation/defctrl.json

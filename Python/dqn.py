@@ -2,6 +2,8 @@
 """
 Created on Sun Feb  3 21:26:46 2019
 
+Module containing basic DQN
+
 @author: Moosnum2
 """
 import tensorflow as tf
@@ -13,35 +15,26 @@ class DQN():
         tf.reset_default_graph()
         
         ### MODEL HYPERPARAMETERS
-        self.state_size = [84,84,4]      # Our input is a stack of 4 frames hence 84x84x4 (Width, height, channels) 
+        # Our input is a stack of 4 84x84 frames
+        self.state_size = [84,84,4]    
+        # Number of actions available (TODO:Make this a passable parameter?)
         self.action_size = 4
-        self.learning_rate =  0.0002      # Alpha (aka learning rate)
-        
-        ### TRAINING HYPERPARAMETERS
-        self.total_episodes = 500        # Total episodes for training
-        self.max_steps = 3000              # Max possible steps in an episode
-        self.batch_size = 64             
+        # Alpha
+        self.learning_rate =  0.0002      
         
         # Exploration parameters for epsilon greedy strategy
-        self.explore_start = 1.0            # exploration probability at start
-        self.explore_stop = 0.01            # minimum exploration probability 
-        self.decay_rate = 0.0001            # exponential decay rate for exploration prob
-        
-        # Q learning hyperparameters
-        self.gamma = 0.95               # Discounting rate
-        
-        ## TURN THIS TO TRUE IF YOU WANT TO RENDER THE ENVIRONMENT
-        self.episode_render = False
+        self.explore_start = 1.0            
+        self.explore_stop = 0.05            
+        self.decay_rate = 0.0001            
         
         with tf.variable_scope(name):
             # We create the placeholders
-            # *state_size means that we take each elements of state_size in tuple hence is like if we wrote
-            # [None, 84, 84, 4]
             self.inputs_ = tf.placeholder(tf.float32, [None, *self.state_size], name="inputs")
+            
             self.actions_ = tf.placeholder(tf.float32, [None, self.action_size], name="actions_")
-            #self.actions_ = tf.placeholder(tf.float32, [None], name="actions_")
+
                 
-            # Remember that target_Q is the R(s,a) + ymax Qhat(s', a')
+            # target_Q is R(s,a) + ymax Qhat(s', a')
             self.target_Q = tf.placeholder(tf.float32, [None], name="target")
                 
             """
@@ -51,18 +44,18 @@ class DQN():
             ELU
             """
             # Input is 84x84x4
-            self.conv1 = tf.layers.conv2d(inputs = self.inputs_,
-                                          filters = 32,
-                                          kernel_size = [8,8],
-                                          strides = [4,4],
-                                          padding = "VALID",
+            self.conv1 = tf.layers.conv2d(inputs=self.inputs_,
+                                          filters=32,
+                                          kernel_size=[8,8],
+                                          strides=[4,4],
+                                          padding="VALID",
                                           kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
-                                          name = "conv1")
+                                          name="conv1")
                 
             self.conv1_batchnorm = tf.layers.batch_normalization(self.conv1,
-                                                       training = True,
-                                                       epsilon = 1e-5,
-                                                       name = 'batch_norm1')
+                                                                 training=True,
+                                                                 epsilon=1e-5,
+                                                                 name='batch_norm1')
                 
             self.conv1_out = tf.nn.elu(self.conv1_batchnorm, name="conv1_out")
             ## --> [20, 20, 32]
@@ -74,18 +67,18 @@ class DQN():
             BatchNormalization
             ELU
             """
-            self.conv2 = tf.layers.conv2d(inputs = self.conv1_out,
-                                     filters = 64,
-                                     kernel_size = [4,4],
-                                     strides = [2,2],
-                                     padding = "VALID",
-                                     kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
-                                     name = "conv2")
+            self.conv2 = tf.layers.conv2d(inputs=self.conv1_out,
+                                          filters=64,
+                                          kernel_size=[4,4],
+                                          strides=[2,2],
+                                          padding="VALID",
+                                          kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
+                                          name="conv2")
             
             self.conv2_batchnorm = tf.layers.batch_normalization(self.conv2,
-                                                       training = True,
-                                                       epsilon = 1e-5,
-                                                         name = 'batch_norm2')
+                                                                 training=True,
+                                                                 epsilon=1e-5,
+                                                                 name='batch_norm2')
     
             self.conv2_out = tf.nn.elu(self.conv2_batchnorm, name="conv2_out")
                 ## --> [9, 9, 64]
@@ -97,18 +90,18 @@ class DQN():
             BatchNormalization
             ELU
             """
-            self.conv3 = tf.layers.conv2d(inputs = self.conv2_out,
-                                     filters = 128,
-                                     kernel_size = [4,4],
-                                     strides = [2,2],
-                                     padding = "VALID",
-                                     kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
-                                     name = "conv3")
+            self.conv3 = tf.layers.conv2d(inputs=self.conv2_out,
+                                          filters=128,
+                                          kernel_size=[4,4],
+                                          strides=[2,2],
+                                          padding="VALID",
+                                          kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
+                                          name="conv3")
             
             self.conv3_batchnorm = tf.layers.batch_normalization(self.conv3,
-                                                       training = True,
-                                                       epsilon = 1e-5,
-                                                         name = 'batch_norm3')
+                                                                 training=True,
+                                                                 epsilon=1e-5,
+                                                                 name='batch_norm3')
     
             self.conv3_out = tf.nn.elu(self.conv3_batchnorm, name="conv3_out")
             ## --> [3, 3, 128]
@@ -118,27 +111,27 @@ class DQN():
             ## --> [1152]
                 
                 
-            self.fc1 = tf.layers.dense(inputs = self.flatten,
-                                      units = 512,
-                                      activation = tf.nn.elu,
-                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                      name="fc1")
+            self.fc1 = tf.layers.dense(inputs=self.flatten,
+                                       units=512,
+                                       activation=tf.nn.elu,
+                                       kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                       name="fc1")
                 
-            self.fc2 = tf.layers.dense(inputs = self.fc1,
-                                      units = 512,
-                                      activation = tf.nn.elu,
-                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                      name="fc2")
+            self.fc2 = tf.layers.dense(inputs=self.fc1,
+                                       units=512,
+                                       activation=tf.nn.elu,
+                                       kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                       name="fc2")
             
-            self.fc3 = tf.layers.dense(inputs = self.fc2,
-                                      units = 512,
-                                      activation = tf.nn.elu,
-                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                      name="fc3")
+            self.fc3 = tf.layers.dense(inputs=self.fc2,
+                                       units=512,
+                                       activation=tf.nn.elu,
+                                       kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                       name="fc3")
                         
-            self.output = tf.layers.dense(inputs = self.fc3, 
+            self.output = tf.layers.dense(inputs=self.fc3, 
                                           kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                          units = self.action_size, 
+                                          units=self.action_size, 
                                           activation=None)
     
       
@@ -184,7 +177,7 @@ class DQN():
         else:
             # Get action from Q-network (exploitation)
             # Estimate the Qs values state
-            Qs = sess.run(self.output, feed_dict = {self.inputs_: state.reshape((1, *state.shape))})
+            Qs = sess.run(self.output, feed_dict={self.inputs_: state.reshape((1, *state.shape))})
             
             # Take the biggest Q value (= the best action)
             action = np.argmax(Qs)
@@ -192,15 +185,18 @@ class DQN():
         return action, explore_probability
     
     def get_Qs(self, next_states_mb, sess):
-        return sess.run(self.output, feed_dict = {self.inputs_: next_states_mb})
+        # Get Q values given a mini-batch of states
+        return sess.run(self.output, feed_dict={self.inputs_: next_states_mb})
     
     def get_loss(self, states_mb, targets_mb, actions_mb, sess):
+        # Return loss value for given mini-batch
         return sess.run([self.loss, self.optimizer],
-                                feed_dict={self.inputs_: states_mb,
-                                           self.target_Q: targets_mb,
-                                           self.actions_: actions_mb})
+                        feed_dict={self.inputs_: states_mb,
+                                   self.target_Q: targets_mb,
+                                   self.actions_: actions_mb})
     
     def write(self, episode, states_mb, targets_mb, actions_mb, sess):
+        # Write summary to tensorboard
         summary = sess.run(self.write_op, feed_dict={self.inputs_: states_mb,
                                                self.target_Q: targets_mb,
                                                self.actions_: actions_mb})
@@ -208,7 +204,9 @@ class DQN():
         self.writer.flush()
         
     def save(self, sess, path):
+        # Save the model to file
         self.saver.save(sess, path)
         
     def restore(self, sess, path):
+        # Restore the model from file
         self.saver.restore(sess, path)
