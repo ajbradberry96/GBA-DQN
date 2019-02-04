@@ -6,12 +6,184 @@ Created on Sun Feb  3 12:02:42 2019
 """
 
 import dqn_server
+import preprocessor
+import agent as a
+import numpy as np
+import tensorflow as tf
+import time as t
+start = t.time()
 
-server = dqn_server.Server()
-for _ in range(100):
-    frames, score, game_over = server.get_state()
-    for i in range(4):
-        frames.get()
+N_ACTIONS = 4
+N_FRAMES = 4
+TRAIN_LEN = 500
+MAX_SESS = 30000
+BATCH_SIZE = 64
+GAMMA = .95
+agent = a.Agent(N_ACTIONS)
+server = dqn_server.Server(N_FRAMES)
+prep = preprocessor.Preprocessor(N_FRAMES)
+
+# Pre load agent's memory
+new_frames = None
+new_score = None
+new_game_over = None
+action = None
+reward = None
+new_stack = None
+
+for i in range(BATCH_SIZE + 1):
+    # If it's the first step
+    if i == 0:
+        # First we need a state
+        frames, score, game_over = server.get_state()
+        stack = prep.stack_frames(frames)
+    else:
+        agent.add_memory((stack, action, reward, new_stack, new_game_over))
+        frames, score, game_over = new_frames, new_score, new_game_over
+        
+    # Random action
+    action = np.random.randint(0, N_ACTIONS)
     
-    server.send_action("1000")
+    # Get the rewards
+    server.send_action(action)
+    new_frames, new_score, new_game_over = server.get_state()
+    new_stack = prep.stack_frames(new_frames)
+    
+    if new_game_over:
+        end_score = -100
+    else:
+        end_score = 0
+    reward = (new_score - score) / 10 - end_score
+    
+    # If we're dead
+    if new_game_over:
+        # We finished the episode
+        next_state = np.zeros(stack.shape)
+        
+        # Add experience to memory
+        agent.add_memory((stack, action, reward, next_state, new_game_over))
+        
+        # Start a new episode
+        server.restart()
+        
+        # First we need a state
+        frames, score, game_over = server.get_state()
+        stack = prep.stack_frames(frames)
+
+loss = 1.0
+# Train it
+with tf.Session() as sess:
+    # Initialize the variables
+    sess.run(tf.global_variables_initializer())
+    
+    # Initialize the decay rate (that will use to reduce epsilon) 
+    decay_step = 0
+
+    # Init the game
+    server.restart()
+
+    for episode in range(TRAIN_LEN):
+        # Set step to 0
+        step = 0
+        
+        # Initialize the rewards of the episode
+        episode_rewards = []
+        
+        # Make a new episode and observe the first state
+        frames, score, game_over = server.get_state()
+        stack = prep.stack_frames(frames)
+
+        while step < MAX_SESS:
+            if step != 0:
+                agent.add_memory((stack, action, reward, new_stack, new_game_over))
+                frames, score, game_over = new_frames, new_score, new_game_over
+            
+            step += 1
+            
+            # Increase decay_step
+            decay_step += .0001
+            
+            # Predict the action to take and take it
+            action, explore_probability = agent.predict_action(decay_step, stack, sess)
+
+            # Get the rewards
+            server.send_action(action)
+            new_frames, new_score, new_game_over = server.get_state()
+            new_stack = prep.stack_frames(new_frames)
+            
+            if new_game_over:
+                end_score = -100
+            else:
+                end_score = -1
+            reward = (new_score - score) / 100 + end_score
+            
+            # Add the reward to total reward
+            episode_rewards.append(reward)
+
+            # If the game is finished
+            if new_game_over:
+                # the episode ends so no next state
+                next_state = np.zeros(stack.shape)
+
+                # Set step = max_steps to end the episode
+                step = MAX_SESS
+
+                # Get the total reward of the episode
+                total_reward = np.sum(episode_rewards)
+
+                print('Episode: {}'.format(episode),
+                          'Total reward: {}'.format(total_reward),
+                          'Training loss: {:.4f}'.format(loss),
+                          'Explore P: {:.4f}'.format(explore_probability))
+
+                agent.add_memory((stack, action, reward, next_state, new_game_over))
+                
+                server.restart()
+
+
+        ### LEARNING PART            
+        # Obtain random mini-batch from memory
+        batch = agent.memory_sample(BATCH_SIZE)
+        states_mb = np.array([each[0] for each in batch], ndmin=3)
+        actions_mb = [[0,0,0,0] for _ in range(BATCH_SIZE)]
+        for i, each in enumerate(batch):
+            actions_mb[i][each[1]] = 1
+        #actions_mb = np.array([each[1] for each in batch])
+        rewards_mb = np.array([each[2] for each in batch]) 
+        next_states_mb = np.array([each[3] for each in batch], ndmin=3)
+        dones_mb = np.array([each[4] for each in batch])
+
+        target_Qs_batch = []
+
+         # Get Q values for next_state 
+        Qs_next_state = agent.get_Qs(next_states_mb, sess)
+        
+        # Set Q_target = r if the episode ends at s+1, otherwise set Q_target = r + gamma*maxQ(s', a')
+        for i in range(0, len(batch)):
+            terminal = dones_mb[i]
+
+            # If we are in a terminal state, only equals reward
+            if terminal:
+                target_Qs_batch.append(rewards_mb[i])
+                
+            else:
+                target = rewards_mb[i] + GAMMA * np.max(Qs_next_state[i])
+                target_Qs_batch.append(target)
+                
+
+        targets_mb = np.array([each for each in target_Qs_batch])
+        
+        # CHECK THIS
+        loss, _ = agent.get_loss(states_mb, targets_mb, actions_mb, sess)
+
+        # Write TF Summaries
+        agent.write(episode, states_mb, targets_mb, actions_mb, sess)
+
+        # Save model every 5 episodes
+        if episode % 5 == 0:
+            agent.save(sess, "./models/model.ckpt")
+            print("Model Saved")
+            
 server.close()
+
+print("Took", t.time() - start, "seconds.")

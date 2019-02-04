@@ -7,16 +7,15 @@ Created on Sun Feb  3 11:44:16 2019
 
 import socket               
 import matplotlib.image as mpimg
-import queue
 import time
  # A LEFT RIGHT NOTHING
  
-action_dict = {"1000" : '|    0,    0,    0,  100,.......A...|', 
-               "0100" : '|    0,    0,    0,  100,..L........|',
-               "0010" : '|    0,    0,    0,  100,...R.......|', 
-               "0001" : '|    0,    0,    0,  100,...........|'}
+action_dict = {0 : '|    0,    0,    0,  100,.......A...|', 
+               1 : '|    0,    0,    0,  100,..L........|',
+               2 : '|    0,    0,    0,  100,...R.......|', 
+               3 : '|    0,    0,    0,  100,...........|'}
 class Server():
-    def __init__(self):
+    def __init__(self, num_frames):
         self.s = socket.socket()         # Create a socket object
         self.host = 'localhost'          # Get local machine name
         self.port = 36296                # Reserve a port for your service.
@@ -37,14 +36,14 @@ class Server():
         self.restart()
         
     def get_state(self):
-        frame_stack = queue.Queue(maxsize=self.num_frames)
+        frame_stack = []
         self.c.send(bytes("send state",'utf-8'))
         data = self.c.recv(self.RECV_BUFFER).decode("utf-8")
         self.c.send(bytes("State received.",'utf-8'))
 
         
         for i in range(self.num_frames):
-            frame_stack.put(mpimg.imread('../States/frame' + str(i + 1)+ '.png'))
+            frame_stack.append(mpimg.imread('../States/frame' + str(i + 1)+ '.png'))
 
         score = int(data.split(',')[0])
         game_over_num = int(data.split(',')[1])

@@ -15,7 +15,7 @@ end
 client.setscreenshotosd(false)
 tcp:send("Connected to GBA.")
 
-tcp:settimeout(.005)
+tcp:settimeout(.003)
 
 message, error, receive_buffer = tcp:receive("*l", receive_buffer)
 print(receive_buffer)
