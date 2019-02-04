@@ -132,9 +132,10 @@ with tf.Session() as sess:
                 total_reward = np.sum(episode_rewards)
 
                 print('Episode: {}'.format(episode),
-                          'Total reward: {}'.format(total_reward),
+                          'Total reward: {:.4f}'.format(total_reward),
                           'Training loss: {:.4f}'.format(loss),
-                          'Explore P: {:.4f}'.format(explore_probability))
+                          'Explore P: {:.4f}'.format(explore_probability),
+                          'End score: {}'.format(new_score))
 
                 agent.add_memory((stack, action, reward, next_state, new_game_over))
                 
