@@ -37,3 +37,6 @@ class Agent():
         
     def save(self, sess, path):
         self.model.save(sess, path)
+        
+    def restore(self, sess, path):
+        self.model.restore(sess, path)

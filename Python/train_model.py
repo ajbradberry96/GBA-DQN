@@ -50,9 +50,9 @@ for i in range(BATCH_SIZE + 1):
     new_stack = prep.stack_frames(new_frames)
     
     if new_game_over:
-        end_score = -100
+        end_score = -10
     else:
-        end_score = 0
+        end_score = -.1
     reward = (new_score - score) / 10 - end_score
     
     # If we're dead
@@ -101,7 +101,7 @@ with tf.Session() as sess:
             step += 1
             
             # Increase decay_step
-            decay_step += .001
+            decay_step += .1
             
             # Predict the action to take and take it
             action, explore_probability = agent.predict_action(decay_step, stack, sess)
@@ -112,10 +112,10 @@ with tf.Session() as sess:
             new_stack = prep.stack_frames(new_frames)
             
             if new_game_over:
-                end_score = -100
+                end_score = -10
             else:
-                end_score = -1
-            reward = (new_score - score) / 100 + end_score
+                end_score = -.1
+            reward = (new_score - score) / 10 + end_score
             
             # Add the reward to total reward
             episode_rewards.append(reward)
