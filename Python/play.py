@@ -2,6 +2,8 @@
 """
 Created on Mon Feb  4 07:10:56 2019
 
+Module that has an alread trained DQN play the game
+
 @author: Moosnum2
 """
 
@@ -13,7 +15,9 @@ import tensorflow as tf
 import time as t
 start = t.time()
 
+# Number of available actions
 N_ACTIONS = 4
+# Number of frames per stack
 N_FRAMES = 4
 
 agent = a.Agent(N_ACTIONS)
@@ -31,8 +35,6 @@ with tf.Session() as sess:
     while not game_over:
         # Take the biggest Q value (= the best action)
         Qs = agent.get_Qs([stack], sess)[0]
-            
-        print(Qs)
             
         # Take the biggest Q value (= the best action)
         action = np.argmax(Qs)
