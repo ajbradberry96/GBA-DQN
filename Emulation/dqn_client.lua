@@ -68,6 +68,16 @@ function receive_action()
   tcp:send("action received")
 end
 
+function send_action()
+  -- Send an action to the server in table form
+  buttons = joypad.get()
+  if buttons['A'] == true then tcp:send('0')
+  elseif buttons['Left'] == true then tcp:send('1')
+  elseif buttons['Right'] == true then tcp:send('2')
+  else tcp:send('3')
+  end
+end
+
 function close()
   -- Close TCP connection and set game running forever so BizHawk can be closed
   print("closing...")
@@ -83,5 +93,6 @@ while true do
   if command == "restart" then restart() end
   if command == "send state" then send_state() end
   if command == "receive action" then receive_action() end
+  if command == "send action" then send_action() end
   if command == "close" then close() end
 end

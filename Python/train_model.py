@@ -14,6 +14,7 @@ import numpy as np
 import tensorflow as tf
 import time as t
 
+WATCH_ME = True
 # So we can time how long training takes...
 start = t.time()
 # Number of actions available to our agent
@@ -21,14 +22,18 @@ N_ACTIONS = 4
 # Number of frames per stack
 N_FRAMES = 4
 # Number of episodes to train
-TRAIN_LEN = 500
+TRAIN_LEN = 300
 # Maximum number of steps in any given episode
-MAX_SESS = 30000
+MAX_SESS = 10000
 # Training batch size
 BATCH_SIZE = 64
 GAMMA = .95
 
-agent = a.Agent(N_ACTIONS)
+if WATCH_ME:
+    agent = a.Agent(N_ACTIONS, "../Memories/mem.pkl")
+else:
+    agent = a.Agent(N_ACTIONS)
+    
 server = dqn_server.Server(N_FRAMES)
 prep = preprocessor.Preprocessor(N_FRAMES)
 
@@ -70,8 +75,8 @@ for i in range(BATCH_SIZE + 1):
     if new_game_over:
         end_score = -10
     else:
-        end_score = -.1
-    reward = (new_score - score) / 10 - end_score
+        end_score = -.01
+    reward = ((new_score - score) / 10 + end_score) / 100
     
     # If we're dead
     if new_game_over:
@@ -115,7 +120,7 @@ with tf.Session() as sess:
             step += 1
             
             # Increase decay_step
-            decay_step += .1
+            decay_step += .5
             
             # Predict the action to take and take it
             action, explore_probability = agent.predict_action(decay_step, stack, sess)
@@ -128,8 +133,8 @@ with tf.Session() as sess:
             if new_game_over:
                 end_score = -10
             else:
-                end_score = -.1
-            reward = (new_score - score) / 10 + end_score
+                end_score = -.01
+            reward = ((new_score - score) / 10 + end_score) / 100
             
             # Add the reward to total reward
             episode_rewards.append(reward)
@@ -146,7 +151,7 @@ with tf.Session() as sess:
                 total_reward = np.sum(episode_rewards)
 
                 print('Episode: {}'.format(episode),
-                          'Total reward: {:.4f}'.format(total_reward),
+                          'Total reward: {:.1f}'.format(total_reward),
                           'Training loss: {:.4f}'.format(loss),
                           'Explore P: {:.4f}'.format(explore_probability),
                           'End score: {}'.format(new_score))

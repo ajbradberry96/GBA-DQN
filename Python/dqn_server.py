@@ -70,6 +70,12 @@ class Server():
         self.c.recv(self.RECV_BUFFER)
         return (frame_stack, score, game_over)
     
+    def get_action(self):
+        self.c.send(bytes("send action", 'utf-8'))
+        data = self.c.recv(self.RECV_BUFFER).decode("utf-8")
+
+        return int(data)
+    
     def send_action(self, action):
         # Send action to emulator in Input Log string form
         self.c.send(bytes("receive action",'utf-8'))

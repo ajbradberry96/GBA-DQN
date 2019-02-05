@@ -35,10 +35,10 @@ with tf.Session() as sess:
     while not game_over:
         # Take the biggest Q value (= the best action)
         Qs = agent.get_Qs([stack], sess)[0]
-            
+        
         # Take the biggest Q value (= the best action)
         action = np.argmax(Qs)
-            
+        
         server.send_action(action)
         
         frames, score, game_over = server.get_state()

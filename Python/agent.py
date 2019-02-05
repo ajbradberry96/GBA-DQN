@@ -9,15 +9,18 @@ predictions from a model (currently, a DQN) based upon game states.
 """
 import dqn
 import memory
+import pickle as pkl
 
 class Agent():
-    def __init__(self, N_ACTIONS):                
-        ### MEMORY HYPERPARAMETERS
-        # Number of experiences the Memory can keep
-        self.memory_size = 1000000         
+    def __init__(self, N_ACTIONS, memory_path=None):                
+        if memory_path == None:
+            ### MEMORY HYPERPARAMETERS
+            # Number of experiences the Memory can keep     
+            self.memory = memory.Memory(1000000)
+        else:
+            self.memory = pkl.load(open(memory_path, 'rb'))
+            
         self.model = dqn.DQN()
-        self.memory = memory.Memory(self.memory_size)
-        
         # Set up tensorboard
         self.model.set_up_board()
     
@@ -44,3 +47,6 @@ class Agent():
         
     def restore(self, sess, path):
         self.model.restore(sess, path)
+    
+    def save_memory(self, path):
+        pkl.dump(self.memory, open(path, 'wb'))
