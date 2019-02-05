@@ -20,7 +20,7 @@ class DQN():
         # Number of actions available (TODO:Make this a passable parameter?)
         self.action_size = 4
         # Alpha
-        self.learning_rate =  0.0002      
+        self.learning_rate =  0.002      
         
         # Exploration parameters for epsilon greedy strategy
         self.explore_start = 1.0            

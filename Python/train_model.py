@@ -120,7 +120,7 @@ with tf.Session() as sess:
             step += 1
             
             # Increase decay_step
-            decay_step += .5
+            decay_step += .2
             
             # Predict the action to take and take it
             action, explore_probability = agent.predict_action(decay_step, stack, sess)
@@ -151,7 +151,7 @@ with tf.Session() as sess:
                 total_reward = np.sum(episode_rewards)
 
                 print('Episode: {}'.format(episode),
-                          'Total reward: {:.1f}'.format(total_reward),
+                          'Total reward: {:.4f}'.format(total_reward),
                           'Training loss: {:.4f}'.format(loss),
                           'Explore P: {:.4f}'.format(explore_probability),
                           'End score: {}'.format(new_score))
