@@ -2,6 +2,12 @@ local tcp = require("socket").tcp()
 local receive_buffer = ""
 local message = ""
 local success, error = tcp:connect('localhost', 36296)
+local action_dict = {}
+action_dict['A'] = "|    0,    0,    0,  100,.......A...|"
+action_dict['L'] = "|    0,    0,    0,  100,..L........|"               action_dict['R'] = "|    0,    0,    0,  100,...R.......|"
+action_dict[' '] = "|    0,    0,    0,  100,...........|"
+
+local prev_action = action_dict[' ']
 
 -- Number of frames in a stack
 local num_frames = 4
@@ -34,6 +40,7 @@ function send_state()
   -- Send state of game
   -- i. Screenshots
   for i=1, num_frames do
+    joypad.setfrommnemonicstr(prev_action)
     emu.frameadvance() 
     client.screenshot("../States/frame" .. i .. ".png")
   end
@@ -64,17 +71,26 @@ function receive_action()
   message, error, receive_buffer = tcp:receive("*l", receive_buffer)
 
   -- Set that action as the action for the next frame
-  joypad.setfrommnemonicstr(receive_buffer)
+  prev_action = receive_buffer
   tcp:send("action received")
 end
 
 function send_action()
   -- Send an action to the server in table form
-  buttons = joypad.get()
-  if buttons['A'] == true then tcp:send('0')
-  elseif buttons['Left'] == true then tcp:send('1')
-  elseif buttons['Right'] == true then tcp:send('2')
-  else tcp:send('3')
+  buttons = input.get()
+
+  if buttons['X'] == true then
+    tcp:send('0')
+    prev_action = action_dict['A']
+  elseif buttons['LeftArrow'] == true then 
+    tcp:send('1')
+    prev_action = action_dict['L']
+  elseif buttons['RightArrow'] == true then 
+    tcp:send('2')
+    prev_action = action_dict['R']
+  else 
+    tcp:send('3')
+    prev_action = action_dict[' ']
   end
 end
 

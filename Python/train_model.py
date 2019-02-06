@@ -120,7 +120,7 @@ with tf.Session() as sess:
             step += 1
             
             # Increase decay_step
-            decay_step += .2
+            decay_step += .15
             
             # Predict the action to take and take it
             action, explore_probability = agent.predict_action(decay_step, stack, sess)
@@ -201,7 +201,7 @@ with tf.Session() as sess:
 
         # Save model every 5 episodes
         if episode % 5 == 0:
-            agent.save(sess, "./models/model.ckpt")
+            agent.save(sess, "./models/model2.ckpt")
             print("Model Saved")
 
 # Close the connection            

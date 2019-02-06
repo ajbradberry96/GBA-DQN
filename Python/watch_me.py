@@ -49,6 +49,7 @@ for i in range(MAX_SESS):
         
     # Get the rewards and next state
     action = server.get_action()
+
     new_frames, new_score, new_game_over = server.get_state()
     new_stack = prep.stack_frames(new_frames)
     
