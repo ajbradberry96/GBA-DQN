@@ -11,7 +11,9 @@ script in BizHawk.
 import socket               
 import matplotlib.image as mpimg
 import time
+import subprocess
 
+NUM_FRAMES = 4
 # Dictionary mapping action numbers to their corresponding Input Log
 # strings. For SMB, the available actions are A LEFT RIGHT NOTHING
 action_dict = {0 : '|    0,    0,    0,  100,.......A...|', 
@@ -19,19 +21,28 @@ action_dict = {0 : '|    0,    0,    0,  100,.......A...|',
                2 : '|    0,    0,    0,  100,...R.......|', 
                3 : '|    0,    0,    0,  100,...........|'}
 class Server():
-    def __init__(self, num_frames):
+    def __init__(self):
         # Create a socket object
         self.s = socket.socket()         
         self.host = 'localhost'          
         self.port = 36296                
         self.s.bind((self.host, self.port))
         self.RECV_BUFFER = 4096
-
+    
         print("Server started. Listening on port ", self.port)
         
         # Now wait for client connection. At this point, start Lua script
         self.s.listen(5)                 
         
+        self.s.settimeout(30)
+        
+        self.start_game()
+
+    def start_game(self):
+        self.game = subprocess.Popen(['../Emulation/EmuHawk.exe', 
+                                 '--lua=../Emulation/dqn_client.lua', 
+                                 '../Emulation/ROMS/SMA4.gba'])
+    
         # Establish connection with client.
         self.c, addr = self.s.accept()     
         print('Got connection from', addr)
@@ -41,10 +52,7 @@ class Server():
         # Get the number of frames in a stack
         self.num_frames = int(self.c.recv(self.RECV_BUFFER).decode('utf-8'))
         print("Number of frames per stack: ", self.num_frames)
-        print("Should be equal to:", num_frames)
-        
-        # Set up the game
-        self.restart()
+        print("Should be equal to:", NUM_FRAMES)
         
     def get_state(self):
         # Saves the most recent 4 frames, and receives the score and game_over
@@ -96,3 +104,4 @@ class Server():
         time.sleep(1)
         self.c.close()
         self.s.close()
+        self.game.terminate()

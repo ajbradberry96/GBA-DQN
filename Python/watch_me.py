@@ -18,7 +18,7 @@ N_FRAMES = 4
 MAX_SESS = 3000
 
 agent = a.Agent(N_ACTIONS)
-server = dqn_server.Server(N_FRAMES)
+server = dqn_server.Server()
 prep = preprocessor.Preprocessor(N_FRAMES)
 
 # Pre load agent's memory

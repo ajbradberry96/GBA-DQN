@@ -21,7 +21,7 @@ N_ACTIONS = 4
 N_FRAMES = 4
 
 agent = a.Agent(N_ACTIONS)
-server = dqn_server.Server(N_FRAMES)
+server = dqn_server.Server()
 prep = preprocessor.Preprocessor(N_FRAMES)
 
 with tf.Session() as sess:
