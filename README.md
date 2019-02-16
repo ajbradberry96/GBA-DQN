@@ -1,6 +1,6 @@
 # GBA-DQN
 
-A standard DQN being designed to be able to play any GBA game, currently setting up to play the original Mario Bros. from the cartridge Super Mario Bros Advance 4.
+A standard DQN being designed to be able to play any GBA game, currently setting up to play the original Mario Bros. from the cartridge Super Mario Advance 4.
 
 # Setup
 
@@ -8,7 +8,9 @@ Download this Repo
 
 Install Bizhawk from here: http://tasvideos.org/Bizhawk.html
 
-Place all of the resulting files in Emulation folder.
+Place all of the resulting files in Emulation/ folder.
+
+Place a ROM of Super Mario Advance 4 with filename "SMA4.gba" into the Emulation/ROMs/ folder.
 
 Download LuaSocket from here: http://w3.impa.br/~diego/software/luasocket/installation.html
 
