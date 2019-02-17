@@ -20,7 +20,7 @@ class DQN():
         # Number of actions available (TODO:Make this a passable parameter?)
         self.action_size = 4
         # Alpha
-        self.learning_rate =  0.0004      
+        self.learning_rate =  0.0001      
         
         # Exploration parameters for epsilon greedy strategy
         self.explore_start = 1.0            
@@ -112,19 +112,19 @@ class DQN():
                 
                 
             self.fc1 = tf.layers.dense(inputs=self.flatten,
-                                       units=512,
+                                       units=256,
                                        activation=tf.nn.elu,
                                        kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                        name="fc1")
                 
             self.fc2 = tf.layers.dense(inputs=self.fc1,
-                                       units=512,
+                                       units=256,
                                        activation=tf.nn.elu,
                                        kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                        name="fc2")
             
             self.fc3 = tf.layers.dense(inputs=self.fc2,
-                                       units=512,
+                                       units=256,
                                        activation=tf.nn.elu,
                                        kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                        name="fc3")

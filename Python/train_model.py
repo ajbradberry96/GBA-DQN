@@ -22,11 +22,11 @@ N_ACTIONS = 4
 # Number of frames per stack
 N_FRAMES = 4
 # Number of episodes to train
-TRAIN_LEN = 10000
+TRAIN_LEN = 3000
 # Maximum number of steps in any given episode
 MAX_SESS = 10000
 # Training batch size
-BATCH_SIZE = 1024
+BATCH_SIZE = 512
 GAMMA = .95
 
 if WATCH_ME:
