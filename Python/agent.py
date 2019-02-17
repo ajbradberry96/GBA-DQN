@@ -11,12 +11,13 @@ import dqn
 import memory
 import pickle as pkl
 
+MEM_SIZE = 40000
 class Agent():
     def __init__(self, N_ACTIONS, memory_path=None):                
         if memory_path == None:
             ### MEMORY HYPERPARAMETERS
             # Number of experiences the Memory can keep     
-            self.memory = memory.Memory(1000000)
+            self.memory = memory.Memory(MEM_SIZE)
         else:
             self.memory = pkl.load(open(memory_path, 'rb'))
             
@@ -50,3 +51,6 @@ class Agent():
     
     def save_memory(self, path):
         pkl.dump(self.memory, open(path, 'wb'))
+
+    def get_mem_size(self):
+        return self.memory.get_mem_size()

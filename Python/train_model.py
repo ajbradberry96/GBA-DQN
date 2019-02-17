@@ -22,11 +22,11 @@ N_ACTIONS = 4
 # Number of frames per stack
 N_FRAMES = 4
 # Number of episodes to train
-TRAIN_LEN = 300
+TRAIN_LEN = 10000
 # Maximum number of steps in any given episode
 MAX_SESS = 10000
 # Training batch size
-BATCH_SIZE = 64
+BATCH_SIZE = 1024
 GAMMA = .95
 
 if WATCH_ME:
@@ -121,7 +121,7 @@ with tf.Session() as sess:
                 step += 1
                 
                 # Increase decay_step
-                decay_step += .15
+                decay_step += .075
                 
                 # Predict the action to take and take it
                 action, explore_probability = agent.predict_action(decay_step, stack, sess)
@@ -155,7 +155,8 @@ with tf.Session() as sess:
                               'Total reward: {:.4f}'.format(total_reward),
                               'Training loss: {:.4f}'.format(loss),
                               'Explore P: {:.4f}'.format(explore_probability),
-                              'End score: {}'.format(new_score))
+                              'End score: {}'.format(new_score),
+                              'Memory size: {}'.format(agent.get_mem_size()))
     
                     agent.add_memory((stack, action, reward, next_state, new_game_over))
                     
@@ -208,7 +209,13 @@ with tf.Session() as sess:
         except Exception as e:
             print(e)
             server.close()
-            server = dqn_server.Server()
+            server = None
+            while server == None:
+                try:
+                    server = dqn_server.Server()
+                except Exception as e:
+                    print(e)
+                    server = None
         
 # Close the connection            
 server.close()

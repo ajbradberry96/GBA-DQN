@@ -26,3 +26,6 @@ class Memory():
                                  replace = False)
         
         return [self.buffer[i] for i in index]
+
+    def get_mem_size(self):
+        return len(self.buffer)

@@ -34,7 +34,7 @@ class Server():
         # Now wait for client connection. At this point, start Lua script
         self.s.listen(5)                 
         
-        self.s.settimeout(30)
+        self.s.settimeout(45)
         
         self.start_game()
 
@@ -44,7 +44,8 @@ class Server():
                                  '../Emulation/ROMS/SMA4.gba'])
     
         # Establish connection with client.
-        self.c, addr = self.s.accept()     
+        self.c, addr = self.s.accept()
+        self.c.settimeout(45)
         print('Got connection from', addr)
         print(self.c.recv(self.RECV_BUFFER).decode('utf-8'))
         self.c.send(bytes('Connected to Python.','utf-8'))
